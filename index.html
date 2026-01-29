@@ -59,9 +59,9 @@ input[type="text"] { width:100%; padding:10px 12px; border-radius:14px; border:1
   </label>
 
   <div class="tags">
-    <label><input type="checkbox" value="slope">#slope</label>
-    <label><input type="checkbox" value="wheelchair">#wheelchair</label>
-    <label><input type="checkbox" value="toilet">#toilet</label>
+    <label><input type="checkbox" value="slope"> #slope</label>
+    <label><input type="checkbox" value="wheelchair"> #wheelchair</label>
+    <label><input type="checkbox" value="toilet"> #toilet</label>
   </div>
 
   <button class="post-btn" onclick="addSpot()">Post</button>
@@ -90,105 +90,148 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
+/* Firebase config */
 const firebaseConfig = {
   apiKey: "AIzaSyCjb_BYuBWpNSq_VCOlfdproM-BeKHus6c",
   authDomain: "accessible-guam-map.firebaseapp.com",
   projectId: "accessible-guam-map",
   storageBucket: "accessible-guam-map.firebasestorage.app",
   messagingSenderId: "422773836973",
-  appId: "1:422773836973:web:963f88b1a2b810f301ca24",
-  measurementId: "G-8LMMX98WMT"
+  appId: "1:422773836973:web:963f88b1a2b810f301ca24"
 };
-
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 const storage = getStorage();
 
+/* userId（ログイン不要） */
 if (!localStorage.getItem("userId")) {
   localStorage.setItem("userId", crypto.randomUUID());
 }
 
-let map, selectedLatLng=null, markers=[];
+let map;
+let selectedLatLng = null;
+let markers = [];
 
+/* Google Map */
 window.initMap = () => {
   map = new google.maps.Map(document.getElementById("map"), {
-    center:{lat:13.4443,lng:144.7937},
+    center:{ lat:13.4443, lng:144.7937 },
     zoom:11
   });
 
-  map.addListener("click", e => selectedLatLng = e.latLng);
-
-  const sb = new google.maps.places.SearchBox(searchBox);
-  sb.addListener("places_changed",()=>{
-    const p=sb.getPlaces()[0];
-    if(!p) return;
-    map.panTo(p.geometry.location);
-    map.setZoom(15);
-    selectedLatLng=p.geometry.location;
-    placeName.value=p.name;
+  map.addListener("click", e => {
+    selectedLatLng = e.latLng;
   });
 
-  onSnapshot(collection(db,"posts"), snap=>{
-    markers.forEach(m=>m.setMap(null));
-    markers=[];
-    snap.forEach(d=>{
-      const data=d.data();
-      const m=new google.maps.Marker({position:{lat:data.lat,lng:data.lng},map});
-      markers.push(m);
+  const sb = new google.maps.places.SearchBox(searchBox);
+  sb.addListener("places_changed", () => {
+    const p = sb.getPlaces()[0];
+    if (!p) return;
+    map.panTo(p.geometry.location);
+    map.setZoom(15);
+    selectedLatLng = p.geometry.location;
+    placeName.value = p.name;
+  });
 
-      const btns = data.owner===localStorage.getItem("userId")
+  onSnapshot(collection(db,"posts"), snap => {
+    markers.forEach(m => m.setMap(null));
+    markers = [];
+
+    snap.forEach(d => {
+      const data = d.data();
+
+      const marker = new google.maps.Marker({
+        position:{ lat:data.lat, lng:data.lng },
+        map
+      });
+
+      marker.tags = data.tags || [];
+      markers.push(marker);
+
+      const buttons =
+        data.owner === localStorage.getItem("userId")
         ? `<button onclick="deletePost('${d.id}')">Delete</button>`
         : "";
 
-      const html=`
+      const html = `
         <strong>${data.placeName}</strong><br>
-        ${data.comment}<br>
-        <img src="${data.imageUrl}" style="width:120px;cursor:pointer"
-         onclick="openModal('${data.imageUrl}')"><br>
-        ${btns}
+        ${data.comment || ""}<br>
+        ${data.imageUrl ? `<img src="${data.imageUrl}" style="width:120px;cursor:pointer" onclick="openModal('${data.imageUrl}')">` : ""}
+        <br>${buttons}
       `;
-      const info=new google.maps.InfoWindow({content:html});
-      m.addListener("click",()=>info.open(map,m));
+
+      const info = new google.maps.InfoWindow({ content: html });
+      marker.addListener("click", () => info.open(map, marker));
     });
   });
 };
 
+/* Add post */
 window.addSpot = async () => {
-  if(!selectedLatLng) return alert("Select a place");
-  const file=imageInput.files[0];
-  let imageUrl="";
-  if(file){
-    const r=ref(storage,"images/"+Date.now());
-    await uploadBytes(r,file);
-    imageUrl=await getDownloadURL(r);
+  if (!selectedLatLng) {
+    alert("Click map or search a place first");
+    return;
   }
-  await addDoc(collection(db,"posts"),{
-    placeName:placeName.value,
-    comment:commentInput.value,
-    lat:selectedLatLng.lat(),
-    lng:selectedLatLng.lng(),
+
+  const selectedTags = [...document.querySelectorAll('.tags input:checked')]
+    .map(cb => cb.value);
+
+  let imageUrl = "";
+  const file = imageInput.files[0];
+  if (file) {
+    const r = ref(storage, "images/" + Date.now());
+    await uploadBytes(r, file);
+    imageUrl = await getDownloadURL(r);
+  }
+
+  await addDoc(collection(db,"posts"), {
+    placeName: placeName.value,
+    comment: commentInput.value,
+    lat: selectedLatLng.lat(),
+    lng: selectedLatLng.lng(),
     imageUrl,
-    owner:localStorage.getItem("userId")
+    tags: selectedTags,
+    owner: localStorage.getItem("userId")
   });
+
   formCard.classList.remove("show");
 };
 
+/* Delete */
 window.deletePost = async id => {
-  if(confirm("Delete this post?")) await deleteDoc(doc(db,"posts",id));
+  if (confirm("Delete this post?")) {
+    await deleteDoc(doc(db,"posts",id));
+  }
 };
 
+/* Filter */
+window.filterMarkers = (tag, btn) => {
+  document.querySelectorAll(".filters button")
+    .forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  markers.forEach(m => {
+    if (tag === "all" || m.tags.includes(tag)) {
+      m.setMap(map);
+    } else {
+      m.setMap(null);
+    }
+  });
+};
+
+/* UI helpers */
+window.toggleForm = () => formCard.classList.toggle("show");
 window.openModal = src => {
-  modalImg.src=src;
-  downloadLink.href=src;
-  imageModal.style.display="flex";
+  modalImg.src = src;
+  downloadLink.href = src;
+  imageModal.style.display = "flex";
 };
-
-window.toggleForm=()=>formCard.classList.toggle("show");
-window.filterMarkers=()=>{};
 </script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPGlb-Wo-6h4mihUxTWglq0meRqv6zUyM&libraries=places&callback=initMap&language=en" async defer></script>
+<script
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPGlb-Wo-6h4mihUxTWglq0meRqv6zUyM&libraries=places&callback=initMap&language=en"
+async defer></script>
 
 </body>
 </html>
