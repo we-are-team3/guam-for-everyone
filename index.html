@@ -200,6 +200,26 @@ function initMap() {
     center: { lat: 13.4443, lng: 144.7937 },
     zoom: 11
   });
+import { getFirestore, collection, onSnapshot } from
+  "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const db = getFirestore();
+
+// 🔁 Firestoreから全部読み込む
+onSnapshot(collection(db, "posts"), (snapshot) => {
+  snapshot.forEach(doc => {
+    const data = doc.data();
+
+    addMarkerToMap(
+      data.lat,
+      data.lng,
+      data.placeName,
+      data.tag,
+      data.imageUrl,
+      doc.id
+    );
+  });
+});
 
   map.addListener("click", e => selectedLatLng = e.latLng);
 
