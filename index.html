@@ -6,133 +6,33 @@
 <title>Accessible Guam Map</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #f4f6f8;
-}
+body { margin:0; font-family:system-ui,sans-serif; background:#f4f6f8; }
+header { background:#2d8cf0; color:white; padding:18px; text-align:center; }
+.container { max-width:1100px; margin:auto; padding:12px; }
+#map { height:65vh; border-radius:18px; margin-top:10px; }
 
-header {
-  background: #2d8cf0;
-  color: white;
-  padding: 18px;
-  text-align: center;
-}
+.search-box { width:100%; padding:12px; border-radius:14px; border:1px solid #ccc; }
 
-.container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 12px;
-}
+.form-toggle { margin:12px auto; display:block; padding:12px 20px; border-radius:999px; border:none; background:#2d8cf0; color:white; cursor:pointer; }
 
-#map {
-  height: 65vh;
-  border-radius: 18px;
-  margin-top: 10px;
-}
+.form-card { background:white; border-radius:20px; padding:16px; margin-bottom:12px; display:none; }
+.form-card.show { display:block; }
 
-/* search */
-.search-box {
-  width: 100%;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid #ccc;
-}
+input[type="text"] { width:100%; padding:10px 12px; border-radius:14px; border:1px solid #ccc; margin-bottom:10px; }
 
-/* form */
-.form-toggle {
-  margin: 12px auto;
-  display: block;
-  padding: 12px 20px;
-  border-radius: 999px;
-  border: none;
-  background: #2d8cf0;
-  color: white;
-  cursor: pointer;
-}
+.file-label { display:inline-block; padding:10px 14px; border-radius:14px; background:#eaf4ff; cursor:pointer; }
+.file-label input { display:none; }
 
-.form-card {
-  background: white;
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 12px;
-  display: none;
-}
+.tags { display:flex; gap:14px; margin:10px 0; }
+.post-btn { width:100%; padding:12px; border-radius:999px; border:none; background:#2d8cf0; color:white; cursor:pointer; }
 
-.form-card.show { display: block; }
+.filters { display:flex; gap:8px; margin:12px 0; }
+.filters button { padding:6px 12px; border-radius:999px; border:none; cursor:pointer; }
+.filters .active { background:#2d8cf0; color:white; }
 
-input[type="text"] {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid #ccc;
-  margin-bottom: 10px;
-}
-
-/* file input */
-.file-label {
-  display: inline-block;
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: #eaf4ff;
-  cursor: pointer;
-  font-size: 14px;
-}
-.file-label input { display: none; }
-
-/* tags */
-.tags {
-  display: flex;
-  gap: 14px;
-  font-size: 14px;
-  margin: 10px 0;
-}
-
-.post-btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 999px;
-  border: none;
-  background: #2d8cf0;
-  color: white;
-  cursor: pointer;
-}
-
-/* filters */
-.filters {
-  display: flex;
-  gap: 8px;
-  margin: 12px 0;
-}
-.filters button {
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-}
-.filters .active {
-  background: #2d8cf0;
-  color: white;
-}
-
-/* modal */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.6);
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-.modal-content {
-  background: white;
-  padding: 16px;
-  border-radius: 16px;
-}
-.modal img {
-  max-width: 90vw;
-  border-radius: 12px;
-}
+.modal { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; }
+.modal-content { background:white; padding:16px; border-radius:16px; }
+.modal img { max-width:90vw; border-radius:12px; }
 </style>
 </head>
 
@@ -168,136 +68,127 @@ input[type="text"] {
 </div>
 
 <div class="filters">
-  <button class="active" onclick="filterMarkers('all', this)">Show all</button>
-  <button onclick="filterMarkers('slope', this)">#slope</button>
-  <button onclick="filterMarkers('wheelchair', this)">#wheelchair</button>
-  <button onclick="filterMarkers('toilet', this)">#toilet</button>
+  <button class="active" onclick="filterMarkers('all',this)">Show all</button>
+  <button onclick="filterMarkers('slope',this)">#slope</button>
+  <button onclick="filterMarkers('wheelchair',this)">#wheelchair</button>
+  <button onclick="filterMarkers('toilet',this)">#toilet</button>
 </div>
 
 <div id="map"></div>
 </div>
 
-<!-- image modal -->
 <div class="modal" id="imageModal" onclick="this.style.display='none'">
   <div class="modal-content" onclick="event.stopPropagation()">
-    <img id="modalImg">
-    <br><br>
+    <img id="modalImg"><br><br>
     <a id="downloadLink" download>Download image</a>
   </div>
 </div>
 
-<script>
-let map, selectedLatLng = null;
-let posts = [];
-let currentFilter = "all";
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
-function toggleForm() {
-  formCard.classList.toggle("show");
+const firebaseConfig = {
+  apiKey: "AIzaSyCjb_BYuBWpNSq_VCOlfdproM-BeKHus6c",
+  authDomain: "accessible-guam-map.firebaseapp.com",
+  projectId: "accessible-guam-map",
+  storageBucket: "accessible-guam-map.firebasestorage.app",
+  messagingSenderId: "422773836973",
+  appId: "1:422773836973:web:963f88b1a2b810f301ca24",
+  measurementId: "G-8LMMX98WMT"
+};
+
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore();
+const storage = getStorage();
+
+if (!localStorage.getItem("userId")) {
+  localStorage.setItem("userId", crypto.randomUUID());
 }
 
-function initMap() {
+let map, selectedLatLng=null, markers=[];
+
+window.initMap = () => {
   map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: 13.4443, lng: 144.7937 },
-    zoom: 11
+    center:{lat:13.4443,lng:144.7937},
+    zoom:11
   });
-import { getFirestore, collection, onSnapshot } from
-  "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-const db = getFirestore();
-
-// 🔁 Firestoreから全部読み込む
-onSnapshot(collection(db, "posts"), (snapshot) => {
-  snapshot.forEach(doc => {
-    const data = doc.data();
-
-    addMarkerToMap(
-      data.lat,
-      data.lng,
-      data.placeName,
-      data.tag,
-      data.imageUrl,
-      doc.id
-    );
-  });
-});
 
   map.addListener("click", e => selectedLatLng = e.latLng);
 
-  const searchBox = new google.maps.places.SearchBox(searchBoxInput = document.getElementById("searchBox"));
-  searchBox.addListener("places_changed", () => {
-    const place = searchBox.getPlaces()[0];
-    if (!place) return;
-    map.panTo(place.geometry.location);
+  const sb = new google.maps.places.SearchBox(searchBox);
+  sb.addListener("places_changed",()=>{
+    const p=sb.getPlaces()[0];
+    if(!p) return;
+    map.panTo(p.geometry.location);
     map.setZoom(15);
-    selectedLatLng = place.geometry.location;
-    placeName.value = place.name;
+    selectedLatLng=p.geometry.location;
+    placeName.value=p.name;
   });
-}
 
-function addSpot() {
-  if (!selectedLatLng) return alert("Select a place");
+  onSnapshot(collection(db,"posts"), snap=>{
+    markers.forEach(m=>m.setMap(null));
+    markers=[];
+    snap.forEach(d=>{
+      const data=d.data();
+      const m=new google.maps.Marker({position:{lat:data.lat,lng:data.lng},map});
+      markers.push(m);
 
-  const tags = [...document.querySelectorAll(".tags input:checked")].map(t => t.value);
-  const file = imageInput.files[0];
-  const imgURL = file ? URL.createObjectURL(file) : "";
+      const btns = data.owner===localStorage.getItem("userId")
+        ? `<button onclick="deletePost('${d.id}')">Delete</button>`
+        : "";
 
-  const marker = new google.maps.Marker({ position: selectedLatLng, map });
-
-  const post = { marker, tags, imgURL, name: placeName.value, comment: commentInput.value };
-  posts.push(post);
-
-  marker.addListener("click", () => openInfo(post));
-}
-
-function openInfo(post) {
-  const html = `
-    <strong>${post.name}</strong><br>
-    ${post.comment}<br>
-    ${post.imgURL ? `<img src="${post.imgURL}" style="width:120px;cursor:pointer" onclick="openModal('${post.imgURL}')"><br>` : ""}
-    <button onclick="editPost('${post.name}')">Edit</button>
-    <button onclick="deletePost('${post.name}')">Delete</button>
-  `;
-  new google.maps.InfoWindow({ content: html }).open(map, post.marker);
-}
-
-function editPost(name) {
-  const p = posts.find(p => p.name === name);
-  placeName.value = p.name;
-  commentInput.value = p.comment;
-  toggleForm();
-}
-
-function deletePost(name) {
-  const i = posts.findIndex(p => p.name === name);
-  posts[i].marker.setMap(null);
-  posts.splice(i, 1);
-}
-
-function filterMarkers(tag, btn) {
-  currentFilter = tag;
-  document.querySelectorAll(".filters button").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-
-  posts.forEach(p => {
-    if (tag === "all" || p.tags.includes(tag)) {
-      p.marker.setMap(map);
-    } else {
-      p.marker.setMap(null);
-    }
+      const html=`
+        <strong>${data.placeName}</strong><br>
+        ${data.comment}<br>
+        <img src="${data.imageUrl}" style="width:120px;cursor:pointer"
+         onclick="openModal('${data.imageUrl}')"><br>
+        ${btns}
+      `;
+      const info=new google.maps.InfoWindow({content:html});
+      m.addListener("click",()=>info.open(map,m));
+    });
   });
-}
+};
 
-function openModal(src) {
-  modalImg.src = src;
-  downloadLink.href = src;
-  imageModal.style.display = "flex";
-}
+window.addSpot = async () => {
+  if(!selectedLatLng) return alert("Select a place");
+  const file=imageInput.files[0];
+  let imageUrl="";
+  if(file){
+    const r=ref(storage,"images/"+Date.now());
+    await uploadBytes(r,file);
+    imageUrl=await getDownloadURL(r);
+  }
+  await addDoc(collection(db,"posts"),{
+    placeName:placeName.value,
+    comment:commentInput.value,
+    lat:selectedLatLng.lat(),
+    lng:selectedLatLng.lng(),
+    imageUrl,
+    owner:localStorage.getItem("userId")
+  });
+  formCard.classList.remove("show");
+};
+
+window.deletePost = async id => {
+  if(confirm("Delete this post?")) await deleteDoc(doc(db,"posts",id));
+};
+
+window.openModal = src => {
+  modalImg.src=src;
+  downloadLink.href=src;
+  imageModal.style.display="flex";
+};
+
+window.toggleForm=()=>formCard.classList.toggle("show");
+window.filterMarkers=()=>{};
 </script>
 
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPGlb-Wo-6h4mihUxTWglq0meRqv6zUyM&libraries=places&callback=initMap&language=en"
-  async defer>
-</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPGlb-Wo-6h4mihUxTWglq0meRqv6zUyM&libraries=places&callback=initMap&language=en" async defer></script>
 
 </body>
 </html>
