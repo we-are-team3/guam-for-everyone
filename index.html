@@ -7,7 +7,64 @@
 
 <style>
 body { margin:0; font-family:system-ui,sans-serif; background:#f4f6f8; }
-header { background:#2d8cf0; color:white; padding:18px; text-align:center; }
+header { background:#2d8cf0; color:white; padding:18px; text-align:center; position:relative; }
+header h2 { margin:0; }
+header p { margin:6px 0 10px; }
+
+.menu-icon {
+  position:absolute;
+  top:18px;
+  right:20px;
+  font-size:26px;
+  cursor:pointer;
+}
+
+.dropdown {
+  position:absolute;
+  top:60px;
+  right:20px;
+  background:white;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.2);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+}
+.dropdown button {
+  padding:10px 16px;
+  border:none;
+  background:white;
+  cursor:pointer;
+  text-align:left;
+}
+.dropdown button:hover { background:#f0f0f0; }
+
+.top-buttons {
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+.top-buttons button {
+  padding:8px 16px;
+  border-radius:999px;
+  border:none;
+  background:white;
+  color:#2d8cf0;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.section {
+  display:none;
+  background:white;
+  margin:12px auto;
+  padding:20px;
+  border-radius:20px;
+  max-width:900px;
+  line-height:1.7;
+}
+
 .container { max-width:1100px; margin:auto; padding:12px; }
 #map { height:65vh; border-radius:18px; margin-top:10px; }
 
@@ -20,9 +77,6 @@ header { background:#2d8cf0; color:white; padding:18px; text-align:center; }
 
 input[type="text"] { width:100%; padding:10px 12px; border-radius:14px; border:1px solid #ccc; margin-bottom:10px; }
 
-.file-label { display:inline-block; padding:10px 14px; border-radius:14px; background:#eaf4ff; cursor:pointer; }
-.file-label input { display:none; }
-
 .tags { display:flex; gap:14px; margin:10px 0; }
 
 .post-btn { width:100%; padding:12px; border-radius:999px; border:none; background:#2d8cf0; color:white; cursor:pointer; }
@@ -31,38 +85,128 @@ input[type="text"] { width:100%; padding:10px 12px; border-radius:14px; border:1
 .filters button { padding:6px 12px; border-radius:999px; border:none; cursor:pointer; }
 .filters .active { background:#2d8cf0; color:white; }
 
-.modal { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; }
-.modal-content { background:white; padding:16px; border-radius:16px; }
-.modal img { max-width:90vw; border-radius:12px; }
+.notice { font-size:13px; color:#888; margin-top:6px; }
+
+img.ud-image { width:100%; border-radius:12px; margin:12px 0; }
+
+.highlight {
+  background:#eaf4ff;
+  padding:18px;
+  border-radius:16px;
+  margin-top:20px;
+  font-weight:500;
+}
 </style>
 </head>
 
 <body>
 
 <header>
+  <div class="menu-icon" onclick="toggleMenu()">☰</div>
   <h2>Accessible Guam Map</h2>
   <p>Anyone can share accessibility information</p>
+
+  <div class="dropdown" id="menu">
+    <button onclick="toggleSection('howto')">How to Use</button>
+    <button onclick="toggleSection('ud')">Universal Design</button>
+  </div>
 </header>
 
+<div class="top-buttons">
+  <button onclick="toggleSection('howto')">How to Use</button>
+  <button onclick="toggleSection('ud')">Universal Design</button>
+</div>
+
+<!-- How to Use -->
+<div class="section" id="howto">
+<h3>How to Use / 使い方</h3>
+
+<p>1. Search for a place using "Search places on map".<br>
+Search places on mapで施設を検索します。</p>
+
+<p>2. The location will appear at the center of the map. Click the map to select the place.<br>
+検索した場所が地図の中央に表示されます。地図をクリックして施設を選択します。</p>
+
+<p>3. Add a comment and select tags, then press "Post".<br>
+コメントとタグを選択し、「Post」を押して投稿します。</p>
+
+<p>4. Posts remain visible even after reloading the page, and anyone can see them.<br>
+投稿はページを再読み込みしても表示され、誰でも見ることができます。</p>
+
+<p>5. You can filter posts by tags.<br>
+タグで絞り込み表示をすることもできます。</p>
+
+<p class="notice">
+※ Currently, image uploads are unavailable due to system limitations.<br>
+※ 現在、システムの都合上、画像の投稿はできません。
+</p>
+</div>
+
+<!-- Universal Design -->
+<div class="section" id="ud">
+<h3>What is Universal Design? / ユニバーサルデザインとは？</h3>
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Wheelchair_accessible_icon.svg" class="ud-image">
+
+<p>
+Universal Design is the idea of creating environments and services that can be used by everyone, regardless of age, ability, language, or background.
+</p>
+
+<p>
+ユニバーサルデザインとは、年齢や障がいの有無、言語、国籍などに関係なく、すべての人が使いやすい環境やサービスをつくる考え方です。
+</p>
+
+<p>
+Examples include slopes, accessible toilets, and easy-to-understand signs.
+</p>
+
+<p>
+例えば、スロープ、バリアフリートイレ、わかりやすい案内表示などがあります。
+</p>
+
+<p>
+Universal Design benefits everyone — elderly people, children, tourists, and even people with temporary injuries.
+</p>
+
+<p>
+ユニバーサルデザインは、高齢者や子ども、観光客、一時的にけがをしている人など、すべての人に役立ちます。
+</p>
+
+<div class="highlight">
+This website is not limited to Guam.  
+You can post accessibility information from anywhere in the world.  
+
+Your post can help turn someone’s “I want to go” into “I can go.”  
+
+We hope this small action will contribute to building a world that is fair, inclusive, and peaceful — where no one is left at a disadvantage.
+<br><br>
+このウェブサイトはグアムに限らず、世界中の施設を投稿できます。  
+
+あなたの投稿が、誰かの「行きたい」を「行ける」に変える力になります。  
+
+誰も不利にならない、公平で包摂的、そして平和な社会につながることを願っています。
+</div>
+
+<p style="margin-top:20px;">
+We encourage you to look around your community and discover examples of Universal Design.
+<br>
+ぜひ皆さんの身の回りでもユニバーサルデザインを探してみてください。
+</p>
+
+</div>
+
 <div class="container">
-
 <input id="searchBox" class="search-box" placeholder="Search places on map">
-
 <button class="form-toggle" onclick="toggleForm()">＋ Add new spot</button>
 
 <div class="form-card" id="formCard">
   <input id="placeName" type="text" placeholder="Place name">
   <input id="commentInput" type="text" placeholder="Comment">
 
-  <label class="file-label">
-    Choose image
-    <input id="imageInput" type="file" accept="image/*">
-  </label>
-
   <div class="tags">
-    <label><input type="checkbox" value="slope"> #slope</label>
-    <label><input type="checkbox" value="wheelchair"> #wheelchair</label>
-    <label><input type="checkbox" value="toilet"> #toilet</label>
+    <label><input type="checkbox" value="slope">#slope</label>
+    <label><input type="checkbox" value="wheelchair">#wheelchair</label>
+    <label><input type="checkbox" value="toilet">#toilet</label>
   </div>
 
   <button class="post-btn" onclick="addSpot()">Post</button>
@@ -78,174 +222,21 @@ input[type="text"] { width:100%; padding:10px 12px; border-radius:14px; border:1
 <div id="map"></div>
 </div>
 
-<div class="modal" id="imageModal" onclick="this.style.display='none'">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <img id="modalImg"><br><br>
-    <a id="downloadLink" download>Download image</a>
-  </div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
-
-/* Firebase config */
-const firebaseConfig = {
-  apiKey: "AIzaSyCjb_BYuBWpNSq_VCOlfdproM-BeKHus6c",
-  authDomain: "accessible-guam-map.firebaseapp.com",
-  projectId: "accessible-guam-map",
-  storageBucket: "accessible-guam-map.firebasestorage.app",
-  messagingSenderId: "422773836973",
-  appId: "1:422773836973:web:963f88b1a2b810f301ca24"
-};
-
-initializeApp(firebaseConfig);
-const db = getFirestore();
-const storage = getStorage();
-
-/* userId（ログイン不要・1回生成） */
-if (!localStorage.getItem("userId")) {
-  localStorage.setItem("userId", crypto.randomUUID());
+<script>
+function toggleMenu(){
+  const m = document.getElementById("menu");
+  m.style.display = m.style.display === "flex" ? "none" : "flex";
 }
-
-let map;
-let selectedLatLng = null;
-let markers = [];
-
-/* Google Map */
-window.initMap = () => {
-  map = new google.maps.Map(document.getElementById("map"), {
-    center:{ lat:13.4443, lng:144.7937 },
-    zoom:11
-  });
-
-  map.addListener("click", e => {
-    selectedLatLng = e.latLng;
-  });
-
-  const sb = new google.maps.places.SearchBox(searchBox);
-  sb.addListener("places_changed", () => {
-    const p = sb.getPlaces()[0];
-    if (!p) return;
-    map.panTo(p.geometry.location);
-    map.setZoom(15);
-    selectedLatLng = p.geometry.location;
-    placeName.value = p.name;
-  });
-
-  onSnapshot(collection(db,"posts"), snap => {
-    markers.forEach(m => m.setMap(null));
-    markers = [];
-
-    snap.forEach(d => {
-      const data = d.data();
-
-      /* 🔒 壊れたデータ防止 */
-      if (
-        !data.placeName ||
-        typeof data.lat !== "number" ||
-        typeof data.lng !== "number"
-      ) return;
-
-      const marker = new google.maps.Marker({
-        position:{ lat:data.lat, lng:data.lng },
-        map
-      });
-
-      marker.tags = Array.isArray(data.tags) ? data.tags : [];
-      markers.push(marker);
-
-      const buttons =
-        data.owner === localStorage.getItem("userId")
-        ? `<button onclick="deletePost('${d.id}')">Delete</button>`
-        : "";
-
-      const html = `
-        <strong>${data.placeName}</strong><br>
-        ${data.comment || ""}<br>
-        ${data.imageUrl ? `<img src="${data.imageUrl}" style="width:120px;cursor:pointer" onclick="openModal('${data.imageUrl}')">` : ""}
-        <br>${buttons}
-      `;
-
-      const info = new google.maps.InfoWindow({ content: html });
-      marker.addListener("click", () => info.open(map, marker));
-    });
-  });
-};
-
-/* Add post */
-window.addSpot = async () => {
-  if (!selectedLatLng) {
-    alert("Click map or search a place first");
-    return;
-  }
-
-  const selectedTags = [...document.querySelectorAll('.tags input:checked')]
-    .map(cb => cb.value);
-
-  let imageUrl = "";
-  const file = imageInput.files[0];
-  if (file) {
-    const r = ref(storage, "images/" + Date.now());
-    await uploadBytes(r, file);
-    imageUrl = await getDownloadURL(r);
-  }
-
-  await addDoc(collection(db,"posts"), {
-    placeName: placeName.value,
-    comment: commentInput.value,
-    lat: selectedLatLng.lat(),
-    lng: selectedLatLng.lng(),
-    imageUrl,
-    tags: selectedTags,
-    owner: localStorage.getItem("userId")
-  });
-
-  /* ✨ 投稿後リセット */
-  placeName.value = "";
-  commentInput.value = "";
-  imageInput.value = "";
-  document.querySelectorAll('.tags input').forEach(cb => cb.checked = false);
-  selectedLatLng = null;
-
-  formCard.classList.remove("show");
-};
-
-/* Delete */
-window.deletePost = async id => {
-  if (confirm("Delete this post?")) {
-    await deleteDoc(doc(db,"posts",id));
-  }
-};
-
-/* Filter */
-window.filterMarkers = (tag, btn) => {
-  document.querySelectorAll(".filters button")
-    .forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-
-  markers.forEach(m => {
-    if (tag === "all" || m.tags.includes(tag)) {
-      m.setMap(map);
-    } else {
-      m.setMap(null);
-    }
-  });
-};
-
-/* UI helpers */
-window.toggleForm = () => formCard.classList.toggle("show");
-window.openModal = src => {
-  modalImg.src = src;
-  downloadLink.href = src;
-  imageModal.style.display = "flex";
-};
+function toggleSection(id){
+  const section = document.getElementById(id);
+  section.style.display = section.style.display === "block" ? "none" : "block";
+}
+function toggleForm(){
+  document.getElementById("formCard").classList.toggle("show");
+}
 </script>
 
-<script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPGlb-Wo-6h4mihUxTWglq0meRqv6zUyM&libraries=places&callback=initMap&language=en"
-async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY&libraries=places&callback=initMap&language=en" async defer></script>
 
 </body>
 </html>
