@@ -1,100 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Accessible Map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body { margin:0; font-family:system-ui,sans-serif; background:#f4f6f8; }
-header { background:#2d8cf0; color:white; padding:18px; text-align:center; position:relative; }
-header h2 { margin:0; }
-header p { margin:6px 0 10px; }
-
-.menu-icon {
-  position:absolute;
-  top:18px;
-  right:20px;
-  font-size:26px;
-  cursor:pointer;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
 }
 
-.dropdown {
-  position:absolute;
-  top:60px;
-  right:20px;
-  background:white;
-  border-radius:12px;
-  box-shadow:0 4px 12px rgba(0,0,0,.2);
-  display:none;
-  flex-direction:column;
-  overflow:hidden;
+header {
+  background: #2f80ed;
+  color: white;
+  text-align: center;
+  padding: 20px 10px;
+  position: relative;
 }
-.dropdown button {
-  padding:10px 16px;
-  border:none;
-  background:white;
-  cursor:pointer;
-  text-align:left;
+
+header h1 {
+  margin: 0;
+  font-size: 28px;
 }
-.dropdown button:hover { background:#f0f0f0; }
+
+header p {
+  margin: 5px 0 15px 0;
+  font-size: 14px;
+}
+
+.menu-btn {
+  position: absolute;
+  right: 20px;
+  top: 25px;
+  font-size: 24px;
+  cursor: pointer;
+}
 
 .top-buttons {
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  margin-bottom:12px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
+
 .top-buttons button {
-  padding:8px 16px;
-  border-radius:999px;
-  border:none;
-  background:white;
-  color:#2d8cf0;
-  cursor:pointer;
-  font-weight:600;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background: white;
+  color: #2f80ed;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.section {
-  display:none;
-  background:white;
-  margin:12px auto;
-  padding:20px;
-  border-radius:20px;
-  max-width:900px;
-  line-height:1.7;
+.search-area {
+  text-align: center;
+  margin: 20px;
 }
 
-.container { max-width:1100px; margin:auto; padding:12px; }
-#map { height:65vh; border-radius:18px; margin-top:10px; }
+.search-area input {
+  width: 60%;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+}
 
-.search-box { width:100%; padding:12px; border-radius:14px; border:1px solid #ccc; }
+.add-btn {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: none;
+  background: #2f80ed;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
 
-.form-toggle { margin:12px auto; display:block; padding:12px 20px; border-radius:999px; border:none; background:#2d8cf0; color:white; cursor:pointer; }
+.filter-area {
+  text-align: center;
+  margin-bottom: 10px;
+}
 
-.form-card { background:white; border-radius:20px; padding:16px; margin-bottom:12px; display:none; }
-.form-card.show { display:block; }
+.filter-area button {
+  margin: 5px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  background: #e0e0e0;
+  cursor: pointer;
+}
 
-input[type="text"] { width:100%; padding:10px 12px; border-radius:14px; border:1px solid #ccc; margin-bottom:10px; }
-
-.tags { display:flex; gap:14px; margin:10px 0; }
-
-.post-btn { width:100%; padding:12px; border-radius:999px; border:none; background:#2d8cf0; color:white; cursor:pointer; }
-
-.filters { display:flex; gap:8px; margin:12px 0; flex-wrap:wrap; }
-.filters button { padding:6px 12px; border-radius:999px; border:none; cursor:pointer; }
-.filters .active { background:#2d8cf0; color:white; }
-
-.notice { font-size:13px; color:#888; margin-top:6px; }
-
-img.ud-image { width:100%; border-radius:12px; margin:12px 0; }
-
-.highlight {
-  background:#eaf4ff;
-  padding:18px;
-  border-radius:16px;
-  margin-top:20px;
-  font-weight:500;
+#map {
+  width: 90%;
+  height: 500px;   /* ← 地図が出ない原因はここが消えてる可能性大 */
+  margin: 0 auto 40px auto;
+  border-radius: 12px;
 }
 </style>
 </head>
@@ -102,141 +105,90 @@ img.ud-image { width:100%; border-radius:12px; margin:12px 0; }
 <body>
 
 <header>
-  <div class="menu-icon" onclick="toggleMenu()">☰</div>
-  <h2>Accessible Map</h2>
+  <h1>Accessible Map</h1>
   <p>Anyone can share accessibility information</p>
+  <div class="menu-btn">☰</div>
 
-  <div class="dropdown" id="menu">
-    <button onclick="toggleSection('howto')">How to Use</button>
-    <button onclick="toggleSection('ud')">Universal Design</button>
+  <div class="top-buttons">
+    <button onclick="scrollToHow()">How to Use</button>
+    <button onclick="scrollToUD()">Universal Design</button>
   </div>
 </header>
 
-<div class="top-buttons">
-  <button onclick="toggleSection('howto')">How to Use</button>
-  <button onclick="toggleSection('ud')">Universal Design</button>
+<div class="search-area">
+  <input type="text" placeholder="Search places on map">
 </div>
 
-<!-- How to Use -->
-<div class="section" id="howto">
-<h3>How to Use / 使い方</h3>
+<button class="add-btn">+ Add new spot</button>
 
-<p>1. Search for a place using "Search places on map".<br>
-Search places on mapで施設を検索します。</p>
-
-<p>2. The location will appear at the center of the map. Click the map to select the place.<br>
-検索した場所が地図の中央に表示されます。地図をクリックして施設を選択します。</p>
-
-<p>3. Add a comment and select tags, then press "Post".<br>
-コメントとタグを選択し、「Post」を押して投稿します。</p>
-
-<p>4. Posts remain visible even after reloading the page, and anyone can see them.<br>
-投稿はページを再読み込みしても表示され、誰でも見ることができます。</p>
-
-<p>5. You can filter posts by tags.<br>
-タグで絞り込み表示をすることもできます。</p>
-
-<p class="notice">
-※ Currently, image uploads are unavailable due to system limitations.<br>
-※ 現在、システムの都合上、画像の投稿はできません。
-</p>
-</div>
-
-<!-- Universal Design -->
-<div class="section" id="ud">
-<h3>What is Universal Design? / ユニバーサルデザインとは？</h3>
-
-<img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Wheelchair_accessible_icon.svg" class="ud-image">
-
-<p>
-Universal Design is the idea of creating environments and services that can be used by everyone, regardless of age, ability, language, or background.
-</p>
-
-<p>
-ユニバーサルデザインとは、年齢や障がいの有無、言語、国籍などに関係なく、すべての人が使いやすい環境やサービスをつくる考え方です。
-</p>
-
-<p>
-Examples include slopes, accessible toilets, and easy-to-understand signs.
-</p>
-
-<p>
-例えば、スロープ、バリアフリートイレ、わかりやすい案内表示などがあります。
-</p>
-
-<p>
-Universal Design benefits everyone — elderly people, children, tourists, and even people with temporary injuries.
-</p>
-
-<p>
-ユニバーサルデザインは、高齢者や子ども、観光客、一時的にけがをしている人など、すべての人に役立ちます。
-</p>
-
-<div class="highlight">
-This website is not limited to Guam.  
-You can post accessibility information from anywhere in the world.  
-
-Your post can help turn someone’s “I want to go” into “I can go.”  
-
-We hope this small action will contribute to building a world that is fair, inclusive, and peaceful — where no one is left at a disadvantage.
-<br><br>
-このウェブサイトはグアムに限らず、世界中の施設を投稿できます。  
-
-あなたの投稿が、誰かの「行きたい」を「行ける」に変える力になります。  
-
-誰も不利にならない、公平で包摂的、そして平和な社会につながることを願っています。
-</div>
-
-<p style="margin-top:20px;">
-We encourage you to look around your community and discover examples of Universal Design.
-<br>
-ぜひ皆さんの身の回りでもユニバーサルデザインを探してみてください。
-</p>
-
-</div>
-
-<div class="container">
-<input id="searchBox" class="search-box" placeholder="Search places on map">
-<button class="form-toggle" onclick="toggleForm()">＋ Add new spot</button>
-
-<div class="form-card" id="formCard">
-  <input id="placeName" type="text" placeholder="Place name">
-  <input id="commentInput" type="text" placeholder="Comment">
-
-  <div class="tags">
-    <label><input type="checkbox" value="slope">#slope</label>
-    <label><input type="checkbox" value="wheelchair">#wheelchair</label>
-    <label><input type="checkbox" value="toilet">#toilet</label>
-  </div>
-
-  <button class="post-btn" onclick="addSpot()">Post</button>
-</div>
-
-<div class="filters">
-  <button class="active" onclick="filterMarkers('all',this)">Show all</button>
-  <button onclick="filterMarkers('slope',this)">#slope</button>
-  <button onclick="filterMarkers('wheelchair',this)">#wheelchair</button>
-  <button onclick="filterMarkers('toilet',this)">#toilet</button>
+<div class="filter-area">
+  <button>Show all</button>
+  <button>#slope</button>
+  <button>#wheelchair</button>
+  <button>#toilet</button>
 </div>
 
 <div id="map"></div>
-</div>
+
+<!-- How to Use -->
+<section id="how" style="padding:40px; text-align:center;">
+  <h2>How to Use / 使い方</h2>
+  <p>
+  Click "+ Add new spot" to post accessibility information.<br>
+  Select a tag and share helpful details.<br><br>
+  「+ Add new spot」から投稿できます。<br>
+  タグを選び、役立つ情報を共有してください。
+  </p>
+  <p style="color:red;">※ Image posting is currently unavailable.</p>
+</section>
+
+<!-- Universal Design -->
+<section id="ud" style="padding:40px; text-align:center; background:#eef3ff;">
+  <h2>What is Universal Design? / ユニバーサルデザインとは？</h2>
+  <p>
+  Universal Design means creating spaces usable by everyone,
+  regardless of age or ability.<br><br>
+  ユニバーサルデザインとは、
+  年齢や障がいに関係なく誰もが使いやすい設計のことです。
+  </p>
+  <p>
+  Try looking for examples around you!
+  身近なユニバーサルデザインを探してみてください。
+  </p>
+  <p style="margin-top:20px;">
+  This website is not limited to Guam.  
+  You can post accessibility information from anywhere in the world.<br>
+  Your post can change someone's "I want to go"
+  into "I can go."<br><br>
+  このウェブサイトはグアムに限らず世界中で使えます。<br>
+  あなたの投稿が誰かの「行きたい」を「行ける」に変えるかもしれません。<br>
+  誰も不利にならない、公平で平和な社会を願って。
+  </p>
+</section>
 
 <script>
-function toggleMenu(){
-  const m = document.getElementById("menu");
-  m.style.display = m.style.display === "flex" ? "none" : "flex";
+function scrollToHow(){
+  document.getElementById("how").scrollIntoView({behavior:"smooth"});
 }
-function toggleSection(id){
-  const section = document.getElementById(id);
-  section.style.display = section.style.display === "block" ? "none" : "block";
+
+function scrollToUD(){
+  document.getElementById("ud").scrollIntoView({behavior:"smooth"});
 }
-function toggleForm(){
-  document.getElementById("formCard").classList.toggle("show");
+
+function initMap() {
+  const center = { lat: 13.4443, lng: 144.7937 };
+
+  const map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 12,
+    center: center,
+  });
 }
 </script>
 
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPGlb-Wo-6h4mihUxTWglq0meRqv6zUyM&libraries=places&callback=initMap&language=en" async defer></script>
+<!-- Google Maps API -->
+<script async
+src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+</script>
 
 </body>
 </html>
